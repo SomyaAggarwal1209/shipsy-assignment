@@ -13,8 +13,12 @@
       </select>
     </label>
     <button type="submit">Apply</button>
-  </form>
-
+    </form>
+    <form method="get" action="{{ url_for('list_shipments') }}">
+    <input type="text" name="q" placeholder="Search description..." value="{{ search_query or '' }}">
+    <input type="hidden" name="status" value="{{ status_filter or '' }}">
+    <button type="submit">Search</button>
+    </form>
   <ul>
     {% for item in pagination.items %}
       <li>

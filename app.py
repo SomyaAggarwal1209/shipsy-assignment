@@ -142,18 +142,29 @@ from flask import abort
 @login_required
 def list_shipments():
     page = int(request.args.get('page', 1))
-    per_page = 5 
+    per_page = 5
     status_filter = request.args.get('status')
+    search_query = request.args.get('q')
+
     q = Shipment.query.order_by(Shipment.created_at.desc())
+
     if status_filter:
-        # map human value back to enum if provided
         try:
             enum_val = ShipmentStatus(status_filter)
             q = q.filter_by(status=enum_val)
         except Exception:
             pass
+
+    if search_query:
+        q = q.filter(Shipment.description.ilike(f"%{search_query}%"))
+
     pagination = q.paginate(page=page, per_page=per_page, error_out=False)
-    return render_template('shipments/list.html', pagination=pagination, status_filter=status_filter)
+    return render_template(
+        'shipments/list.html',
+        pagination=pagination,
+        status_filter=status_filter,
+        search_query=search_query
+    )
 
 # View single shipment
 @app.route('/shipments/<int:shipment_id>')
