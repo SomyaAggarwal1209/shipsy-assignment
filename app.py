@@ -135,6 +135,95 @@ def logout():
 def dashboard():
     return render_template('dashboard.html', user=current_user)
 
+from flask import abort
+
+# List shipments with pagination + simple filter by status
+@app.route('/shipments')
+@login_required
+def list_shipments():
+    page = int(request.args.get('page', 1))
+    per_page = 5 
+    status_filter = request.args.get('status')
+    q = Shipment.query.order_by(Shipment.created_at.desc())
+    if status_filter:
+        # map human value back to enum if provided
+        try:
+            enum_val = ShipmentStatus(status_filter)
+            q = q.filter_by(status=enum_val)
+        except Exception:
+            pass
+    pagination = q.paginate(page=page, per_page=per_page, error_out=False)
+    return render_template('shipments/list.html', pagination=pagination, status_filter=status_filter)
+
+# View single shipment
+@app.route('/shipments/<int:shipment_id>')
+@login_required
+def view_shipment(shipment_id):
+    s = Shipment.query.get_or_404(shipment_id)
+    return render_template('shipments/view.html', shipment=s)
+
+# Create shipment 
+@app.route('/shipments/create', methods=['GET', 'POST'])
+@login_required
+def create_shipment():
+    if request.method == 'POST':
+        description = request.form.get('description', '').strip()
+        status = request.form.get('status', 'ShipmentStatus.pending')
+        is_fragile = bool(request.form.get('is_fragile'))
+        base_cost = float(request.form.get('base_cost') or 0)
+        tax_rate = float(request.form.get('tax_rate') or 0)
+        handling_fee = float(request.form.get('handling_fee') or 0)
+
+        # map status string to enum safely
+        try:
+            status_enum = ShipmentStatus(request.form.get('status'))
+        except Exception:
+            status_enum = ShipmentStatus.pending
+
+        s = Shipment(
+            description=description,
+            status=status_enum,
+            is_fragile=is_fragile,
+            base_cost=base_cost,
+            tax_rate=tax_rate,
+            handling_fee=handling_fee
+        )
+        db.session.add(s)
+        db.session.commit()
+        flash("Shipment created.", "success")
+        return redirect(url_for('list_shipments'))
+    return render_template('shipments/create.html', statuses=[st.value for st in ShipmentStatus])
+
+# Edit shipment
+@app.route('/shipments/<int:shipment_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_shipment(shipment_id):
+    s = Shipment.query.get_or_404(shipment_id)
+    if request.method == 'POST':
+        s.description = request.form.get('description', s.description)
+        try:
+            s.status = ShipmentStatus(request.form.get('status'))
+        except Exception:
+            pass
+        s.is_fragile = bool(request.form.get('is_fragile'))
+        s.base_cost = float(request.form.get('base_cost') or s.base_cost)
+        s.tax_rate = float(request.form.get('tax_rate') or s.tax_rate)
+        s.handling_fee = float(request.form.get('handling_fee') or s.handling_fee)
+        db.session.commit()
+        flash("Shipment updated.", "success")
+        return redirect(url_for('view_shipment', shipment_id=s.id))
+    return render_template('shipments/edit.html', shipment=s, statuses=[st.value for st in ShipmentStatus])
+
+# Delete shipment
+@app.route('/shipments/<int:shipment_id>/delete', methods=['POST'])
+@login_required
+def delete_shipment(shipment_id):
+    s = Shipment.query.get_or_404(shipment_id)
+    db.session.delete(s)
+    db.session.commit()
+    flash("Shipment deleted.", "info")
+    return redirect(url_for('list_shipments'))
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

@@ -1,0 +1,20 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Create Shipment</title></head><body>
+  <h2>Create Shipment</h2>
+  <form method="post" action="{{ url_for('create_shipment') }}">
+    <label>Description: <input type="text" name="description" required></label><br>
+    <label>Status:
+      <select name="status">
+        {% for s in statuses %}
+          <option value="{{ s }}">{{ s }}</option>
+        {% endfor %}
+      </select>
+    </label><br>
+    <label>Is Fragile: <input type="checkbox" name="is_fragile"></label><br>
+    <label>Base Cost: <input type="number" step="0.01" name="base_cost"></label><br>
+    <label>Tax Rate (e.g. 0.18): <input type="number" step="0.01" name="tax_rate"></label><br>
+    <label>Handling Fee: <input type="number" step="0.01" name="handling_fee"></label><br>
+    <button type="submit">Create</button>
+  </form>
+  <p><a href="{{ url_for('list_shipments') }}">Back to list</a></p>
+</body></html>
