@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from dotenv import load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import send_from_directory
 
 load_dotenv()
 
@@ -254,6 +255,15 @@ def delete_shipment(shipment_id):
     db.session.commit()
     flash("Shipment deleted.", "info")
     return redirect(url_for('list_shipments'))
+
+@app.route('/openapi.yaml')
+def openapi_yaml():
+    return send_from_directory('docs', 'openapi.yaml')
+
+# Serve a Swagger UI page that loads the YAML spec above
+@app.route('/api-docs')
+def api_docs():
+    return render_template('swagger_ui.html')
 
 if __name__ == '__main__':
     with app.app_context():
