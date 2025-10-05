@@ -1,24 +1,40 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Shipments</title></head><body>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shipments</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="container">
   <h2>Shipments</h2>
-  <p><a href="{{ url_for('create_shipment') }}">Create new</a> | <a href="{{ url_for('dashboard') }}">Dashboard</a></p>
+  <p>
+    <a href="{{ url_for('create_shipment') }}">Create new</a> |
+    <a href="{{ url_for('dashboard') }}">Dashboard</a>
+  </p>
 
-  <form method="get" action="{{ url_for('list_shipments') }}">
-    <label>Filter by status:
-      <select name="status">
+  <!-- Combined Search + Filter Form (Gemini’s improvement) -->
+  <form class="shipment-search-form" method="get" action="{{ url_for('list_shipments') }}">
+    <div class="form-group">
+      <label for="search">Search</label>
+      <input type="search" id="search" name="q" placeholder="Search by keyword..." value="{{ search_query or '' }}">
+    </div>
+
+    <div class="form-group">
+      <label for="status">Status</label>
+      <select id="status" name="status">
         <option value="">All</option>
         {% for s in ['Pending','In-Transit','Delivered'] %}
           <option value="{{ s }}" {% if status_filter==s %}selected{% endif %}>{{ s }}</option>
         {% endfor %}
       </select>
-    </label>
-    <button type="submit">Apply</button>
-    </form>
-    <form method="get" action="{{ url_for('list_shipments') }}">
-    <input type="text" name="q" placeholder="Search description..." value="{{ search_query or '' }}">
-    <input type="hidden" name="status" value="{{ status_filter or '' }}">
-    <button type="submit">Search</button>
-    </form>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Apply</button>
+  </form>
+
+  <!-- Shipment List -->
   <ul>
     {% for item in pagination.items %}
       <li>
@@ -28,11 +44,16 @@
     {% endfor %}
   </ul>
 
-  {% if pagination.has_prev %}
-    <a href="{{ url_for('list_shipments', page=pagination.prev_num, status=status_filter) }}">Prev</a>
-  {% endif %}
-  Page {{ pagination.page }} of {{ pagination.pages or 1 }}
-  {% if pagination.has_next %}
-    <a href="{{ url_for('list_shipments', page=pagination.next_num, status=status_filter) }}">Next</a>
-  {% endif %}
-</body></html>
+  <!-- Pagination -->
+  <div>
+    {% if pagination.has_prev %}
+      <a href="{{ url_for('list_shipments', page=pagination.prev_num, status=status_filter, q=search_query) }}">Prev</a>
+    {% endif %}
+    Page {{ pagination.page }} of {{ pagination.pages or 1 }}
+    {% if pagination.has_next %}
+      <a href="{{ url_for('list_shipments', page=pagination.next_num, status=status_filter, q=search_query) }}">Next</a>
+    {% endif %}
+  </div>
+</div>
+</body>
+</html>
