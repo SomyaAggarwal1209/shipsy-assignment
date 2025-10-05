@@ -1,69 +1,111 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shipments</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-</head>
-<body>
-<div class="container">
-  <h2>Shipments</h2>
-  <p>
-    <a href="{{ url_for('create_shipment') }}">Create new</a> |
-    <a href="{{ url_for('dashboard') }}">Dashboard</a>
-  </p>
-
-  <!-- Combined Search + Filter Form (Gemini’s improvement) -->
-  <form class="shipment-search-form" method="get" action="{{ url_for('list_shipments') }}">
-    <div class="form-group">
-      <label for="search">Search</label>
-      <input type="search" id="search" name="q" placeholder="Search by keyword..." value="{{ search_query or '' }}">
+{% extends "base.html" %}
+{% block title %}Shipments — Shipment Manager{% endblock %}
+{% block content %}
+<div class="container mt-3">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Shipments</h2>
+    <div>
+      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('index') }}">🏠 Home</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('create_shipment') }}">Create Shipment</a>
+      <a class="btn btn-link btn-sm" href="{{ url_for('dashboard') }}">Dashboard</a>
     </div>
+  </div>
 
-    <div class="form-group">
-      <label for="status">Status</label>
-      <select id="status" name="status">
-        <option value="">All</option>
-        {% for s in ['Pending','In-Transit','Delivered'] %}
-          <option value="{{ s }}" {% if status_filter==s %}selected{% endif %}>{{ s }}</option>
-        {% endfor %}
-      </select>
-    </div>
+  <!-- Search / Filter / Sort form -->
+  <form class="shipment-search-form mb-3 p-3 bg-white rounded" method="get" action="{{ url_for('list_shipments') }}">
+    <div class="row g-2 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label" for="search">Search</label>
+        <input id="search" name="q" type="search" class="form-control" placeholder="Search description..." value="{{ search_query or '' }}">
+      </div>
 
-    <div class="form-group">
-        <label for="sort">Sort by</label>
-        <select id="sort" name="sort_by">
-            <option value="date_desc" {% if sort_by=='date_desc' %}selected{% endif %}>Date: Newest</option>
-            <option value="date_asc" {% if sort_by=='date_asc' %}selected{% endif %}>Date: Oldest</option>
-            <option value="cost_desc" {% if sort_by=='cost_desc' %}selected{% endif %}>Total Cost: High → Low</option>
-            <option value="cost_asc" {% if sort_by=='cost_asc' %}selected{% endif %}>Total Cost: Low → High</option>
+      <div class="col-md-3">
+        <label class="form-label" for="status">Status</label>
+        <select id="status" name="status" class="form-select">
+          <option value="">All</option>
+          <option value="Pending" {% if status_filter=='Pending' %}selected{% endif %}>Pending</option>
+          <option value="In-Transit" {% if status_filter=='In-Transit' %}selected{% endif %}>In-Transit</option>
+          <option value="Delivered" {% if status_filter=='Delivered' %}selected{% endif %}>Delivered</option>
         </select>
-    </div>
+      </div>
 
-    <button type="submit" class="btn btn-primary">Apply</button>
+      <div class="col-md-3">
+        <label class="form-label" for="sort">Sort by</label>
+        <select id="sort" name="sort_by" class="form-select">
+          <option value="date_desc" {% if sort_by=='date_desc' %}selected{% endif %}>Date: Newest</option>
+          <option value="date_asc" {% if sort_by=='date_asc' %}selected{% endif %}>Date: Oldest</option>
+          <option value="cost_desc" {% if sort_by=='cost_desc' %}selected{% endif %}>Total Cost: High → Low</option>
+          <option value="cost_asc" {% if sort_by=='cost_asc' %}selected{% endif %}>Total Cost: Low → High</option>
+        </select>
+      </div>
+
+      <div class="col-md-2 d-grid">
+        <button class="btn btn-primary" type="submit" style="height:38px;">Apply</button>
+      </div>
+    </div>
   </form>
 
-  <!-- Shipment List -->
-  <ul>
-    {% for item in pagination.items %}
-      <li>
-        <a href="{{ url_for('view_shipment', shipment_id=item.id) }}">#{{ item.id }}</a>
-        - {{ item.description }} ({{ item.status.value }}) - ₹{{ item.total_cost }}
-      </li>
-    {% endfor %}
-  </ul>
+  <!-- Shipments list -->
+  <div class="list-group bg-white rounded p-2">
+    {% if pagination.items %}
+      {% for item in pagination.items %}
+        <div class="list-group-item d-flex justify-content-between align-items-start">
+          <div class="ms-2 me-auto">
+            <div class="fw-bold">{{ item.description }}</div>
+            <div class="small text-muted">ID: {{ item.id }} • Created: {{ item.created_at.strftime('%Y-%m-%d') }}</div>
+            <div class="small mt-1">Total: ₹{{ item.total_cost }}</div>
 
-  <!-- Pagination -->
-  <div>
-    {% if pagination.has_prev %}
-      <a href="{{ url_for('list_shipments', page=pagination.prev_num, status=status_filter, q=search_query) }}">Prev</a>
-    {% endif %}
-    Page {{ pagination.page }} of {{ pagination.pages or 1 }}
-    {% if pagination.has_next %}
-      <a href="{{ url_for('list_shipments', page=pagination.next_num, status=status_filter, q=search_query) }}">Next</a>
+            <!-- Status badge (safe access if status is None) -->
+            {% set st = (item.status.value if item.status else 'Unknown') %}
+            {% if st == 'Pending' %}
+              <span class="badge bg-warning text-dark mt-2">Pending</span>
+            {% elif st == 'In-Transit' %}
+              <span class="badge bg-info text-dark mt-2">In-Transit</span>
+            {% elif st == 'Delivered' %}
+              <span class="badge bg-success mt-2">Delivered</span>
+            {% else %}
+              <span class="badge bg-secondary mt-2">{{ st }}</span>
+            {% endif %}
+          </div>
+
+          <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
+            <!-- use url_for directly (routes exist in app.py) -->
+            <a class="btn btn-outline-primary" href="{{ url_for('view_shipment', shipment_id=item.id) }}">View</a>
+            <a class="btn btn-outline-secondary" href="{{ url_for('edit_shipment', shipment_id=item.id) }}">Edit</a>
+
+            <form method="post" action="{{ url_for('delete_shipment', shipment_id=item.id) }}" style="display:inline;">
+              <button class="btn btn-outline-danger" type="submit" onclick="return confirm('Delete shipment #{{ item.id }}?');">Delete</button>
+            </form>
+          </div>
+        </div>
+
+      {% endfor %}
+    {% else %}
+      <div class="p-3 text-center text-muted">No shipments found.</div>
     {% endif %}
   </div>
+
+  <!-- Pagination controls -->
+  <nav aria-label="Shipments pagination" class="mt-3">
+    <ul class="pagination justify-content-center">
+      {% if pagination.has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('list_shipments', page=pagination.prev_num, q=search_query, status=status_filter, sort_by=sort_by) }}">Previous</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">Previous</span></li>
+      {% endif %}
+
+      <li class="page-item disabled"><span class="page-link">Page {{ pagination.page }} of {{ pagination.pages or 1 }}</span></li>
+
+      {% if pagination.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('list_shipments', page=pagination.next_num, q=search_query, status=status_filter, sort_by=sort_by) }}">Next</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">Next</span></li>
+      {% endif %}
+    </ul>
+  </nav>
 </div>
-</body>
-</html>
+{% endblock %}
