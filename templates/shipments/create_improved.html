@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Create Shipment{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Create a New Shipment</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('create_shipment') }}" id="createShipmentForm">
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                        <div class="form-text">A brief description of the shipment.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                        <select class="form-select" id="status" name="status" required>
+                            {% for status in statuses %}
+                            <option value="{{ status }}">{{ status }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_fragile" name="is_fragile" value="y">
+                        <label class="form-check-label" for="is_fragile">Is this shipment fragile?</label>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="base_cost" class="form-label">Base Cost <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="base_cost" name="base_cost" step="0.01" min="0" required>
+                            <div class="form-text">The base cost of the shipment.</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="tax_rate" class="form-label">Tax Rate <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="tax_rate" name="tax_rate" step="0.001" min="0" max="1" required>
+                            <div class="form-text">The tax rate (e.g., 0.05 for 5%).</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="handling_fee" class="form-label">Handling Fee <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="handling_fee" name="handling_fee" step="0.01" min="0" required>
+                            <div class="form-text">Any additional handling fees.</div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Shipment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+{% endblock %}

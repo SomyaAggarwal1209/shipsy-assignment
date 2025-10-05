@@ -1,0 +1,183 @@
+openapi: 3.0.0
+info:
+  title: Shipments API
+  description: API for managing shipments
+  version: 1.0.0
+servers:
+  - url: https://api.example.com/v1
+paths:
+  /shipments:
+    get:
+      summary: List all shipments
+      operationId: listShipments
+      tags:
+        - shipments
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            default: 10
+        - name: search
+          in: query
+          description: Search term to filter shipments
+          schema:
+            type: string
+        - name: filter
+          in: query
+          description: Filter criteria for shipments
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: Sort order for shipments
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A paged list of shipments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Shipment'
+    post:
+      summary: Create a new shipment
+      operationId: createShipment
+      tags:
+        - shipments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewShipment'
+      responses:
+        '201':
+          description: Shipment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+  /shipments/{shipmentId}:
+    get:
+      summary: Get a shipment by ID
+      operationId: getShipmentById
+      tags:
+        - shipments
+      parameters:
+        - name: shipmentId
+          in: path
+          required: true
+          description: ID of the shipment to retrieve
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Shipment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '404':
+          description: Shipment not found
+    put:
+      summary: Update a shipment by ID
+      operationId: updateShipment
+      tags:
+        - shipments
+      parameters:
+        - name: shipmentId
+          in: path
+          required: true
+          description: ID of the shipment to update
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentUpdate'
+      responses:
+        '200':
+          description: Shipment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        '404':
+          description: Shipment not found
+    delete:
+      summary: Delete a shipment by ID
+      operationId: deleteShipment
+      tags:
+        - shipments
+      parameters:
+        - name: shipmentId
+          in: path
+          required: true
+          description: ID of the shipment to delete
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Shipment deleted successfully
+        '404':
+          description: Shipment not found
+components:
+  schemas:
+    Shipment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        trackingNumber:
+          type: string
+        status:
+          type: string
+          enum: [pending, in_transit, delivered, failed]
+        origin:
+          type: string
+        destination:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    NewShipment:
+      type: object
+      required:
+        - trackingNumber
+        - origin
+        - destination
+      properties:
+        trackingNumber:
+          type: string
+        origin:
+          type: string
+        destination:
+          type: string
+    ShipmentUpdate:
+      type: object
+      properties:
+        trackingNumber:
+          type: string
+        status:
+          type: string
+          enum: [pending, in_transit, delivered, failed]
+        origin:
+          type: string
+        destination:
+          type: string

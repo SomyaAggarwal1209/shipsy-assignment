@@ -64,3 +64,37 @@ Return the full, ready-to-copy HTML for templates/index.html and note any CSS ch
 - Replaced `templates/index.html` with an accessible Bootstrap-based homepage.
 - Updated `app.py` index route to query the 5 most recent shipments and pass them to the template.
 - Tested locally and verified navigation between Login/Register/Shipments/API Docs works.
+
+
+
+
+
+### Prompt 6 — 2025-10-05T14:45:00+05:30
+**Prompt:** Write a 3-minute demo script for a reviewer that walks through the Shipment Manager app: register, login, create a shipment, show pagination, search, sort, edit, delete, and show API Docs. Include time cues for each step.
+**Raw response file:** `docs/gemini_outputs/demo_script.txt`
+**AI Response (summary):** Provided a 3-minute walkthrough with time-coded sections: Intro (0:00-0:15), Register/Login (0:15-0:45), Create & Pagination (0:45-1:15), Search & Sort (1:15-1:45), Edit & Delete (1:45-2:15), API Docs (2:15-2:45), Conclusion (2:45-3:00).
+**What I changed / how I used it:** Saved the script to `docs/gemini_outputs/demo_script.txt` and copied it into `docs/video.md` as the narration guide for 3–5 minute demo video. Record the screencast following the time cues and include the video link in `/docs/video.md`.
+
+
+
+
+### Prompt 7 — 2025-10-05T14:58:00+05:30
+**Prompt:** 
+Improve the UI/UX of my Flask Shipment Manager app for three pages: Login, Dashboard, and Shipments (list & view & create/edit). Provide:
+
+1. For each page: accessible, responsive HTML templates (Bootstrap or plain CSS) with semantic markup and ARIA attributes.
+2. For Login: focus on simple form, usable error display, "show password" toggle, and helpful microcopy.
+3. For Dashboard: show summary cards (total shipments, in-transit, delivered), a recent-shipments table (5 latest), and clear CTA buttons to create/view shipments.
+4. For Shipments list & view & create/edit: improve table/list layout, add inline action buttons (view/edit/delete), larger tap targets, and client-side validation for numeric fields (base_cost, tax_rate, handling_fee). For create/edit forms include inline help text and required-field indicators.
+5. Provide the full HTML for these templates (login.html, dashboard.html, shipments/list.html, shipments/view.html, shipments/create.html or create_improved.html), and any small CSS/JS to add to static/css/style.css or static/js/ui.js. Keep JS minimal (vanilla) and non-blocking.
+6. Explain where to place each file in my Flask project and how to wire the templates with existing routes (use my route names: /login, /dashboard, /shipments, /shipments/create, /shipments/<id>, /shipments/<id>/edit).
+7. Offer one or two short accessibility notes (aria, keyboard focus) and small UX copy suggestions.
+
+Return full template code snippets and a short list of exact small edits to make in app.py (if any) so the templates work as-is.
+
+**Raw response file:** `docs/gemini_outputs/ui_update_prompt7.txt`
+**What I changed / how I used it:**
+- Reviewed the AI output and saved improved templates to `templates/login.html`, `templates/dashboard.html`, and `templates/shipments/*.html`.
+- Added small client-side script `static/js/ui.js` (show-password toggle + form validation) and merged recommended CSS into `static/css/style.css`.
+- Tested locally: login form, dashboard summary cards, recent shipments, and improved shipment list & create/edit forms work and are accessible.
+- Committed the changes (see commit message below).

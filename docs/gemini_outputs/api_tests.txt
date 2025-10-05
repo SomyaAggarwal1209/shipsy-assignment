@@ -1,0 +1,150 @@
+I need to see the Flask application to understand the CRUD endpoints for shipments. I'll also need the database model for shipments to understand the data structure.
+
+Could you please provide the files containing your Flask app and Shipment model? I'll also need to see your project's file structure to get a better sense of the project's layout. Once I have that, I can generate the tests you've requested.I am unable to create files or directories. I will provide the content for the test files, and you can create the files yourself.
+
+Here is the content for `tests/conftest.py`:
+
+```python
+import pytest
+from app import create_app, db
+
+@pytest.fixture(scope='module')
+def test_client():
+    flask_app = create_app('testing')
+
+    # Create a test client using the Flask application configured for testing
+    with flask_app.test_client() as testing_client:
+        # Establish an application context
+        with flask_app.app_context():
+            db.create_all()
+            yield testing_client  # this is where the testing happens!
+            db.drop_all()
+```
+
+Here is the content for `tests/test_shipment_endpoints.py`:
+
+```python
+import json
+from app.models import Shipment
+
+def test_create_shipment(test_client):
+    """
+    GIVEN a Flask application configured for testing
+    WHEN the '/shipments' endpoint is posted to (POST)
+    THEN a new shipment should be created
+    """
+    response = test_client.post('/shipments',
+                                data=json.dumps(dict(
+                                    name='Test Shipment',
+                                    origin='Test Origin',
+                                    destination='Test Destination'
+                                )),
+                                content_type='application/json')
+    assert response.status_code == 201
+    assert b"Shipment created successfully" in response.data
+
+def test_get_shipment(test_client):
+    """
+    GIVEN a Flask application configured for testing
+    WHEN the '/shipments/<id>' endpoint is requested (GET)
+    THEN the shipment with the given id should be returned
+    """
+    # First create a shipment to retrieve
+    post_response = test_client.post('/shipments',
+                                     data=json.dumps(dict(
+                                         name='Test Shipment 2',
+                                         origin='Test Origin 2',
+                                         destination='Test Destination 2'
+                                     )),
+                                     content_type='application/json')
+    assert post_response.status_code == 201
+    shipment_id = 1 # assuming this is the first shipment created
+    response = test_client.get(f'/shipments/{shipment_id}')
+    assert response.status_code == 200
+    data = json.loads(response.data)
+    assert data['name'] == 'Test Shipment 2'
+    assert data['origin'] == 'Test Origin 2'
+    assert data['destination'] == 'Test Destination 2'
+
+def test_update_shipment(test_client):
+    """
+    GIVEN a Flask application configured for testing
+    WHEN the '/shipments/<id>' endpoint is updated (PUT)
+    THEN the shipment with the given id should be updated
+    """
+    # First create a shipment to update
+    post_response = test_client.post('/shipments',
+                                     data=json.dumps(dict(
+                                         name='Test Shipment 3',
+                                         origin='Test Origin 3',
+                                         destination='Test Destination 3'
+                                     )),
+                                     content_type='application/json')
+    assert post_response.status_code == 201
+    shipment_id = 1 # assuming this is the first shipment created
+
+    response = test_client.put(f'/shipments/{shipment_id}',
+                               data=json.dumps(dict(
+                                   name='Updated Shipment Name',
+                                   status='in-transit'
+                               )),
+                               content_type='application/json')
+    assert response.status_code == 200
+    assert b"Shipment updated successfully" in response.data
+
+    # Verify the update
+    get_response = test_client.get(f'/shipments/{shipment_id}')
+    assert get_response.status_code == 200
+    data = json.loads(get_response.data)
+    assert data['name'] == 'Updated Shipment Name'
+    assert data['status'] == 'in-transit'
+
+def test_delete_shipment(test_client):
+    """
+    GIVEN a Flask application configured for testing
+    WHEN the '/shipments/<id>' endpoint is deleted (DELETE)
+    THEN the shipment with the given id should be deleted
+    """
+    # First create a shipment to delete
+    post_response = test_client.post('/shipments',
+                                     data=json.dumps(dict(
+                                         name='Test Shipment 4',
+                                         origin='Test Origin 4',
+                                         destination='Test Destination 4'
+                                     )),
+                                     content_type='application/json')
+    assert post_response.status_code == 201
+    shipment_id = 1 # assuming this is the first shipment created
+
+    response = test_client.delete(f'/shipments/{shipment_id}')
+    assert response.status_code == 200
+    assert b"Shipment deleted successfully" in response.data
+
+    # Verify the deletion
+    get_response = test_client.get(f'/shipments/{shipment_id}')
+    assert get_response.status_code == 404
+
+def test_get_nonexistent_shipment(test_client):
+    """
+    GIVEN a Flask application configured for testing
+    WHEN a non-existent shipment id is requested (GET)
+    THEN a 404 error should be returned
+    """
+    response = test_client.get('/shipments/999') # An id that does not exist
+    assert response.status_code == 404
+
+def test_create_shipment_with_missing_data(test_client):
+    """
+    GIVEN a Flask application configured for testing
+    WHEN a new shipment is created with missing data (POST)
+    THEN a 500 (Internal Server Error) or 400 (Bad Request) should be returned
+    """
+    response = test_client.post('/shipments',
+                                data=json.dumps(dict(
+                                    name='Test Shipment 5'
+                                    # Missing origin and destination
+                                )),
+                                content_type='application/json')
+    # Depending on how your app handles this, it could be a 400 or 500
+    assert response.status_code in [400, 500]
+```

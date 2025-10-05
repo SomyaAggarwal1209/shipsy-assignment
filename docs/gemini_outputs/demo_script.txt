@@ -1,0 +1,37 @@
+**Shipment Manager App Demo Script**
+
+**Total Time:** 3 minutes
+
+**Reviewer:** [Reviewer's Name]
+
+**Date:** October 5, 2025
+
+---
+
+**(0:00-0:15) Introduction**
+
+"Hello! This is a quick, 3-minute walkthrough of the Shipment Manager application. We'll cover the main features, from user registration to shipment management and API documentation."
+
+**(0:15-0:45) Registration and Login**
+
+"First, let's register a new user. We'll fill out the registration form with a username, email, and password. Upon successful registration, we are redirected to the login page. Now, let's log in with the newly created credentials. After logging in, we land on the main dashboard."
+
+**(0:45-1:15) Create a Shipment & Pagination**
+
+"From the dashboard, we can create a new shipment. Let's create one by filling in the details: origin, destination, and cargo. Once created, the new shipment appears in our list. Notice the pagination at the bottom of the list. This allows us to navigate through a large number of shipments efficiently."
+
+**(1:15-1:45) Search and Sort**
+
+"Next, let's find a specific shipment. We can use the search bar to look for a shipment by its origin or destination. For example, searching for 'New York' will filter the list to show only shipments related to New York. We can also sort the shipments by clicking on the column headers, for example, by 'Date' or 'Status'."
+
+**(1:45-2:15) Edit and Delete**
+
+"Now, let's edit the shipment we just created. We can change the cargo details or update the status. The changes are reflected immediately in the list. If a shipment is no longer needed, we can delete it. A confirmation prompt ensures we don't accidentally delete a shipment."
+
+**(2:15-2:45) API Documentation**
+
+"For developers, we have integrated API documentation. By navigating to the '/api/docs' endpoint, you can view the Swagger UI for our application's API. This provides a clear overview of all available endpoints, their parameters, and expected responses. It's a great tool for anyone who wants to integrate with our application."
+
+**(2:45-3:00) Conclusion**
+
+"And that concludes our 3-minute demo of the Shipment Manager app. We've covered registration, login, creating, viewing, searching, sorting, editing, and deleting shipments, as well as our developer-friendly API documentation. Thank you for your time!"
