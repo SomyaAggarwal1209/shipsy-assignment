@@ -6,37 +6,63 @@
 </head>
 <body>
   <h2>Edit Shipment #{{ shipment.id }}</h2>
-  <form method="post" action="{{ url_for('edit_shipment', shipment_id=shipment.id) }}">
-    <label>Description:
-      <input type="text" name="description" value="{{ shipment.description }}" required>
-    </label><br>
+{% extends "base.html" %}
 
-    <label>Status:
-      <select name="status">
-        {% for s in statuses %}
-          <option value="{{ s }}" {% if shipment.status.value == s %}selected{% endif %}>{{ s }}</option>
-        {% endfor %}
-      </select>
-    </label><br>
+{% block title %}Edit Shipment{% endblock %}
 
-    <label>Is Fragile:
-      <input type="checkbox" name="is_fragile" {% if shipment.is_fragile %}checked{% endif %}>
-    </label><br>
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Edit Shipment</h2>
+            </div>
+            <div class="card-body">
+               <form id="editShipmentForm" method="POST" action="{{ url_for('edit_shipment', shipment_id=shipment.id) }}">
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <input id="description" name="description" class="form-control" required value="{{ shipment.description }}">
+                    </div>
 
-    <label>Base Cost:
-      <input type="number" step="0.01" name="base_cost" value="{{ shipment.base_cost }}">
-    </label><br>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select id="status" name="status" class="form-select">
+                        {% for st in statuses %}
+                            <option value="{{ st }}" {% if shipment.status and shipment.status.value==st %}selected{% endif %}>{{ st }}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
 
-    <label>Tax Rate (e.g. 0.18):
-      <input type="number" step="0.01" name="tax_rate" value="{{ shipment.tax_rate }}">
-    </label><br>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="is_fragile" name="is_fragile" {% if shipment.is_fragile %}checked{% endif %}>
+                        <label class="form-check-label" for="is_fragile">Fragile</label>
+                    </div>
 
-    <label>Handling Fee:
-      <input type="number" step="0.01" name="handling_fee" value="{{ shipment.handling_fee }}">
-    </label><br>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                        <label for="base_cost" class="form-label">Base Cost</label>
+                        <input id="base_cost" name="base_cost" type="number" step="0.01" class="form-control" value="{{ shipment.base_cost }}">
+                        </div>
 
-    <button type="submit">Save Changes</button>
-  </form>
+                        <div class="col-md-4 mb-3">
+                        <label for="tax_rate" class="form-label">Tax Rate (e.g. 0.18)</label>
+                        <input id="tax_rate" name="tax_rate" type="number" step="0.01" class="form-control" value="{{ shipment.tax_rate }}">
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                        <label for="handling_fee" class="form-label">Handling Fee</label>
+                        <input id="handling_fee" name="handling_fee" type="number" step="0.01" class="form-control" value="{{ shipment.handling_fee }}">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a class="btn btn-secondary" href="{{ url_for('view_shipment', shipment_id=shipment.id) }}">Cancel</a>
+                    </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
   <p><a href="{{ url_for('view_shipment', shipment_id=shipment.id) }}">Cancel</a></p>
 </body>

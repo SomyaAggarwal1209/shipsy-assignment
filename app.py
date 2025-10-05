@@ -135,7 +135,13 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', user=current_user)
+    stats = {
+        'total_shipments': Shipment.query.count(),
+        'in_transit': Shipment.query.filter_by(status=ShipmentStatus.in_transit).count(),
+        'delivered': Shipment.query.filter_by(status=ShipmentStatus.delivered).count()
+    }
+    recent_shipments = Shipment.query.order_by(Shipment.created_at.desc()).limit(5).all()
+    return render_template('dashboard.html', user=current_user, stats=stats, recent_shipments=recent_shipments)
 
 from flask import abort
 
@@ -233,7 +239,7 @@ def create_shipment():
         db.session.commit()
         flash("Shipment created.", "success")
         return redirect(url_for('list_shipments'))
-    return render_template('shipments/create.html', statuses=[st.value for st in ShipmentStatus])
+    return render_template('shipments/create_improved.html', statuses=[st.value for st in ShipmentStatus])
 
 # Edit shipment
 @app.route('/shipments/<int:shipment_id>/edit', methods=['GET', 'POST'])
@@ -241,26 +247,43 @@ def create_shipment():
 def edit_shipment(shipment_id):
     s = Shipment.query.get_or_404(shipment_id)
     if request.method == 'POST':
-        s.description = request.form.get('description', s.description)
+        # Text fields
+        s.description = request.form.get('description', s.description).strip()
+
+        # Map status from form (form sends visible values like "Pending", "In-Transit", "Delivered")
+        form_status = request.form.get('status')
         try:
-            s.status = ShipmentStatus(request.form.get('status'))
+            # try to map by exact enum value
+            s.status = ShipmentStatus(form_status)
         except Exception:
-            pass
+            # fallback: try to match by case-insensitive name
+            for st in ShipmentStatus:
+                if st.value.lower() == (form_status or '').lower():
+                    s.status = st
+                    break
+
+        # Checkbox handling: if present -> True, otherwise False
         s.is_fragile = bool(request.form.get('is_fragile'))
-        def safe_float(value):
-            """Convert to float if not empty; otherwise return None."""
+
+        # Numeric fields: safely parse floats; if parse fails, keep old value
+        def parse_float(field_name, current):
+            val = request.form.get(field_name)
+            if val is None or val == '':
+                return current
             try:
-                if value is None or str(value).strip() == "":
-                    return None
-                return float(value)
+                return float(val)
             except ValueError:
-                return None
-        s.base_cost = safe_float(request.form.get('base_cost')) or s.base_cost
-        s.tax_rate = safe_float(request.form.get('tax_rate')) or s.tax_rate
-        s.handling_fee = safe_float(request.form.get('handling_fee')) or s.handling_fee
+                return current
+
+        s.base_cost = parse_float('base_cost', s.base_cost)
+        s.tax_rate = parse_float('tax_rate', s.tax_rate)
+        s.handling_fee = parse_float('handling_fee', s.handling_fee)
+
         db.session.commit()
         flash("Shipment updated.", "success")
         return redirect(url_for('view_shipment', shipment_id=s.id))
+
+    # GET -> show edit form
     return render_template('shipments/edit.html', shipment=s, statuses=[st.value for st in ShipmentStatus])
 
 # Delete shipment
