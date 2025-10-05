@@ -31,6 +31,16 @@
       </select>
     </div>
 
+    <div class="form-group">
+        <label for="sort">Sort by</label>
+        <select id="sort" name="sort_by">
+            <option value="date_desc" {% if sort_by=='date_desc' %}selected{% endif %}>Date: Newest</option>
+            <option value="date_asc" {% if sort_by=='date_asc' %}selected{% endif %}>Date: Oldest</option>
+            <option value="cost_desc" {% if sort_by=='cost_desc' %}selected{% endif %}>Total Cost: High → Low</option>
+            <option value="cost_asc" {% if sort_by=='cost_asc' %}selected{% endif %}>Total Cost: Low → High</option>
+        </select>
+    </div>
+
     <button type="submit" class="btn btn-primary">Apply</button>
   </form>
 

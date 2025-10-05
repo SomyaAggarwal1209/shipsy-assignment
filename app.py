@@ -145,9 +145,12 @@ def list_shipments():
     per_page = 5
     status_filter = request.args.get('status')
     search_query = request.args.get('q')
+    sort_by = request.args.get('sort_by', 'date_desc')  # default sort
 
-    q = Shipment.query.order_by(Shipment.created_at.desc())
+    # base query
+    q = Shipment.query
 
+    # filters
     if status_filter:
         try:
             enum_val = ShipmentStatus(status_filter)
@@ -158,12 +161,29 @@ def list_shipments():
     if search_query:
         q = q.filter(Shipment.description.ilike(f"%{search_query}%"))
 
+    # sorting options
+    from sqlalchemy import desc, asc
+    # expression for total_cost = base_cost * (1 + tax_rate) + handling_fee
+    total_expr = (Shipment.base_cost * (1 + Shipment.tax_rate) + Shipment.handling_fee)
+
+    if sort_by == 'date_asc':
+        q = q.order_by(asc(Shipment.created_at))
+    elif sort_by == 'date_desc':
+        q = q.order_by(desc(Shipment.created_at))
+    elif sort_by == 'cost_asc':
+        q = q.order_by(asc(total_expr))
+    elif sort_by == 'cost_desc':
+        q = q.order_by(desc(total_expr))
+    else:
+        q = q.order_by(desc(Shipment.created_at))
+
     pagination = q.paginate(page=page, per_page=per_page, error_out=False)
     return render_template(
         'shipments/list.html',
         pagination=pagination,
         status_filter=status_filter,
-        search_query=search_query
+        search_query=search_query,
+        sort_by=sort_by
     )
 
 # View single shipment
