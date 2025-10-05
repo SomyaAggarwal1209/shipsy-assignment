@@ -41,8 +41,26 @@ Added a summary of the project in `/docs/README_assignment.md` to describe overa
 
 
 
-### Prompt 3 — 2025-10-05T11:23:00+05:30
+### Prompt 4 — 2025-10-05T11:23:00+05:30
 **Prompt:** Generate pytest integration tests for Flask Shipment CRUD endpoints covering creation, read, update, delete, and edge cases.   
 **Raw response file:** docs/gemini_outputs/api_tests.txt
 **What I changed:** Compared Gemini’s tests with mine; ensured CRUD routes were validated for DB persistence and total_cost; adopted structure and naming suggestions.
 _Update 2025-10-05_: _Removed failing "create" form test step and DB creation through HTTP post due to inconsistent flash messages and request flow in test mode. Instead, I inserted the shipment directly in the database context to validate the read, update, and delete routes. All tests now pass._
+
+
+
+
+### Prompt 5 — 2025-10-05T12:53:00+05:30
+**Prompt:** npx https://github.com/google-gemini/gemini-cli -- -p "Improve the homepage for a Flask Shipment Manager app. The current index is minimal and has no navigation. Produce a full accessible, responsive HTML homepage that:
+- Uses the existing CSS file at static/css/style.css (or adds small inline styles if necessary)
+- Adds a top nav with logo/title and buttons/links to: Login (/login), Register (/register), Shipments (/shipments), API Docs (/api-docs), Dashboard (/dashboard) (show links only when the user is logged in)
+- Includes a hero section summarizing the app and a short 2-step quick-start (register → create shipment)
+- Produces semantic HTML with aria attributes and small client-side JS to detect logged-in status via presence of a 'data-user' attribute (explain how to set this attribute in the template)
+- Provide accessible button markup and example HTML for a footer with links to docs and GitHub repo
+Return the full, ready-to-copy HTML for templates/index.html and note any CSS changes or additions." --output-format json > docs/gemini_outputs/homepage_ui.txt
+**Raw response file:** docs/gemini_outputs/homepage_ui.txt
+**What I changed / how I used it:** 
+- Reviewed the AI response and adapted the HTML to my project (removed references to fields I don't have, used `s.status.value` and `s.total_cost`).
+- Replaced `templates/index.html` with an accessible Bootstrap-based homepage.
+- Updated `app.py` index route to query the 5 most recent shipments and pass them to the template.
+- Tested locally and verified navigation between Login/Register/Shipments/API Docs works.

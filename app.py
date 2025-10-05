@@ -82,7 +82,8 @@ def load_user(user_id):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    recent = Shipment.query.order_by(Shipment.created_at.desc()).limit(3).all()
+    return render_template('index.html', shipments=recent)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -202,10 +203,18 @@ def create_shipment():
         description = request.form.get('description', '').strip()
         status = request.form.get('status', 'ShipmentStatus.pending')
         is_fragile = bool(request.form.get('is_fragile'))
-        base_cost = float(request.form.get('base_cost') or 0)
-        tax_rate = float(request.form.get('tax_rate') or 0)
-        handling_fee = float(request.form.get('handling_fee') or 0)
+        def safe_float(value):
+            """Convert to float if not empty; otherwise return None."""
+            try:
+                if value is None or str(value).strip() == "":
+                    return None
+                return float(value)
+            except ValueError:
+                return None
 
+        base_cost = safe_float(request.form.get('base_cost'))
+        tax_rate = safe_float(request.form.get('tax_rate'))
+        handling_fee = safe_float(request.form.get('handling_fee'))
         # map status string to enum safely
         try:
             status_enum = ShipmentStatus(request.form.get('status'))
@@ -238,9 +247,17 @@ def edit_shipment(shipment_id):
         except Exception:
             pass
         s.is_fragile = bool(request.form.get('is_fragile'))
-        s.base_cost = float(request.form.get('base_cost') or s.base_cost)
-        s.tax_rate = float(request.form.get('tax_rate') or s.tax_rate)
-        s.handling_fee = float(request.form.get('handling_fee') or s.handling_fee)
+        def safe_float(value):
+            """Convert to float if not empty; otherwise return None."""
+            try:
+                if value is None or str(value).strip() == "":
+                    return None
+                return float(value)
+            except ValueError:
+                return None
+        s.base_cost = safe_float(request.form.get('base_cost')) or s.base_cost
+        s.tax_rate = safe_float(request.form.get('tax_rate')) or s.tax_rate
+        s.handling_fee = safe_float(request.form.get('handling_fee')) or s.handling_fee
         db.session.commit()
         flash("Shipment updated.", "success")
         return redirect(url_for('view_shipment', shipment_id=s.id))
